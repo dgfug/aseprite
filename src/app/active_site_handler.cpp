@@ -1,11 +1,11 @@
 // Aseprite
-// Copyright (C) 2019-2020  Igara Studio S.A.
+// Copyright (C) 2019-2021  Igara Studio S.A.
 //
 // This program is distributed under the terms of
 // the End-User License Agreement for Aseprite.
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+  #include "config.h"
 #endif
 
 #include "app/active_site_handler.h"
@@ -28,10 +28,11 @@ ActiveSiteHandler::~ActiveSiteHandler()
 void ActiveSiteHandler::addDoc(Doc* doc)
 {
   Data data;
-  if (doc::Layer* layer = doc->sprite()->root()->firstLayer())
-    data.layer = layer->id();
-  else
-    data.layer = doc::NullId;
+  data.layer = doc::NullId;
+  if (doc->sprite()) { // The sprite can be nullptr in some tests
+    if (doc::Layer* layer = doc->sprite()->root()->firstLayer())
+      data.layer = layer->id();
+  }
   data.frame = 0;
   m_data.insert(std::make_pair(doc, data));
   doc->add_observer(this);
@@ -67,12 +68,13 @@ void ActiveSiteHandler::getActiveSiteForDoc(Doc* doc, Site* site)
   site->frame(data.frame);
   site->range(data.range);
   site->selectedColors(data.selectedColors);
+  site->selectedTiles(data.selectedTiles);
 }
 
 void ActiveSiteHandler::setActiveLayerInDoc(Doc* doc, doc::Layer* layer)
 {
   Data& data = getData(doc);
-  data.layer = (layer ? layer->id(): 0);
+  data.layer = (layer ? layer->id() : 0);
 }
 
 void ActiveSiteHandler::setActiveFrameInDoc(Doc* doc, doc::frame_t frame)
@@ -109,6 +111,12 @@ void ActiveSiteHandler::setSelectedColorsInDoc(Doc* doc, const doc::PalettePicks
   data.selectedColors = picks;
 }
 
+void ActiveSiteHandler::setSelectedTilesInDoc(Doc* doc, const doc::PalettePicks& picks)
+{
+  Data& data = getData(doc);
+  data.selectedTiles = picks;
+}
+
 void ActiveSiteHandler::onAddLayer(DocEvent& ev)
 {
   Data& data = getData(ev.document());
@@ -125,9 +133,8 @@ void ActiveSiteHandler::onAddFrame(DocEvent& ev)
 void ActiveSiteHandler::onBeforeRemoveLayer(DocEvent& ev)
 {
   Data& data = getData(ev.document());
-  doc::Layer* selectedLayer = (data.layer != doc::NullId ?
-                               doc::get<doc::Layer>(data.layer):
-                               nullptr);
+  doc::Layer* selectedLayer = (data.layer != doc::NullId ? doc::get<doc::Layer>(data.layer) :
+                                                           nullptr);
   if (!selectedLayer)
     return;
 
@@ -137,8 +144,7 @@ void ActiveSiteHandler::onBeforeRemoveLayer(DocEvent& ev)
   // Select other layer as active
   doc::Layer* layerToSelect = candidate_if_layer_is_deleted(selectedLayer, ev.layer());
   if (selectedLayer != layerToSelect) {
-    data.layer = (layerToSelect ? layerToSelect->id():
-                                  doc::NullId);
+    data.layer = (layerToSelect ? layerToSelect->id() : doc::NullId);
   }
 }
 

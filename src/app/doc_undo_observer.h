@@ -1,4 +1,5 @@
 // Aseprite
+// Copyright (C) 2021-2022  Igara Studio S.A.
 // Copyright (C) 2015-2018  David Capello
 //
 // This program is distributed under the terms of
@@ -9,23 +10,23 @@
 #pragma once
 
 namespace undo {
-  class UndoState;
+class UndoState;
 }
 
 namespace app {
 
-  class DocUndo;
+class DocUndo;
 
-  class DocUndoObserver {
-  public:
-    virtual ~DocUndoObserver() { }
-    virtual void onAddUndoState(DocUndo* history) = 0;
-    virtual void onDeleteUndoState(DocUndo* history,
-                                   undo::UndoState* state) = 0;
-    virtual void onCurrentUndoStateChange(DocUndo* history) = 0;
-    virtual void onClearRedo(DocUndo* history) = 0;
-    virtual void onTotalUndoSizeChange(DocUndo* history) = 0;
-  };
+class DocUndoObserver {
+public:
+  virtual ~DocUndoObserver() {}
+  virtual void onAddUndoState(DocUndo* history) {}
+  virtual void onDeleteUndoState(DocUndo* history, undo::UndoState* state) {}
+  virtual void onCurrentUndoStateChange(DocUndo* history) {}
+  virtual void onClearRedo(DocUndo* history) {}
+  virtual void onTotalUndoSizeChange(DocUndo* history) {}
+  virtual void onNewSavedState(DocUndo* history) {}
+};
 
 } // namespace app
 
